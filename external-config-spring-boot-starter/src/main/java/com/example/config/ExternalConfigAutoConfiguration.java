@@ -15,9 +15,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
- * 引入 external-config-spring-boot-starter 即自动生效：
- * 外置配置目录装配由 spring.factories 里的 EnvironmentPostProcessor 完成，
- * 这里只负责注册热更新相关的 Bean。
+ * 外置配置热更新自动装配。
+ *
+ * <p>引入本 starter 后无需任何注解或配置即生效：
+ * 所有属性都有默认值，{@code matchIfMissing = true} 表示不写就是开启。</p>
  */
 @AutoConfiguration
 @ConditionalOnClass(ContextRefresher.class)
@@ -28,13 +29,13 @@ public class ExternalConfigAutoConfiguration {
     private static final Logger log = LoggerFactory.getLogger(ExternalConfigAutoConfiguration.class);
 
     /**
-     * BeanPostProcessor 必须由 static 方法创建，否则会导致「is not eligible for getting processed by all
-     * BeanPostProcessors」警告并可能漏掉早期 Bean。
+     * 必须声明为 static：BeanPostProcessor 的工厂方法若为非 static，
+     * 会导致配置类被迫提前实例化，触发「is not eligible for getting processed by all
+     * BeanPostProcessors」告警。
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "app.hot-reload", name = "refresh-value-fields",
-            havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "app.hot-reload", name = "refresh-value-fields", havingValue = "true", matchIfMissing = true)
     public static ValueFieldRefresher valueFieldRefresher() {
         return new ValueFieldRefresher();
     }
@@ -45,18 +46,21 @@ public class ExternalConfigAutoConfiguration {
                                        ObjectProvider<ContextRefresher> contextRefresher,
                                        ObjectProvider<ValueFieldRefresher> valueFieldRefresher,
                                        ConfigurableEnvironment environment) {
-        Path dir = ExternalConfigLocationResolver.resolveConfigDir();
+        Path configFile = ExternalConfigLocationResolver.resolveConfigFile();
+
         ContextRefresher refresher = contextRefresher.getIfAvailable();
         if (refresher == null) {
             throw new IllegalStateException("未找到 ContextRefresher，请确认已引入 spring-cloud-context");
         }
-        ConfigWatcher watcher = new ConfigWatcher(dir, properties, refresher,
-                valueFieldRefresher.getIfAvailable(), environment);
+
+        ConfigWatcher watcher = new ConfigWatcher(
+                configFile, properties, refresher, valueFieldRefresher.getIfAvailable(), environment);
         watcher.start();
+
         if (watcher.isRunning()) {
-            log.info("外置配置热更新组件已注册并启动，监听目录 {}", dir);
+            log.info("外置配置热更新组件已注册并启动，监听文件 {}", configFile);
         } else {
-            log.warn("外置配置热更新组件已注册但未启动，目录不存在或无权限：{}", dir);
+            log.warn("外置配置热更新组件已注册但未启动，目录不存在或无权限：{}", configFile);
         }
         return watcher;
     }

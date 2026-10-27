@@ -1,4 +1,4 @@
-# jar 内兜底配置：外置 application/application.yml 缺失时使用
+# jar 内兜底配置：jar 同级的 application.yml 缺失时使用
 server:
   port: 8080
 

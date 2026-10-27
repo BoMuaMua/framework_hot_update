@@ -1,9 +1,6 @@
-# 外置配置：jar 同级 application/ 目录，修改后自动热更新
+# 外置配置：与 jar 同级，修改保存后自动热更新（无需重启）
 server:
   port: 8080
-
-jdk:
-  - openjdk17
 
 demo:
   app-name: 外置配置-初始值

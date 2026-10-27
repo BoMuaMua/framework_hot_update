@@ -1,0 +1,8 @@
+# JitPack 构建配置
+# 默认使用 OpenJDK 8，Spring Boot 3.x 必须显式声明 17
+jdk:
+  - openjdk17
+
+# 只发布 starter，不发布 demo 应用（app 模块）
+install:
+  - mvn -B -DskipTests -pl external-config-spring-boot-starter -am install

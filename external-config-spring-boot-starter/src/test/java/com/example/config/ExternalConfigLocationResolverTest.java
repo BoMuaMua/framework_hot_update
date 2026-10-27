@@ -12,43 +12,56 @@ class ExternalConfigLocationResolverTest {
 
     @AfterEach
     void clearOverride() {
+        System.clearProperty(ExternalConfigLocationResolver.OVERRIDE_FILE_KEY);
         System.clearProperty(ExternalConfigLocationResolver.OVERRIDE_DIR_KEY);
     }
 
     @Test
-    void 默认目录名为application() {
-        assertThat(ExternalConfigLocationResolver.CONFIG_DIR_NAME).isEqualTo("application");
+    void 默认文件名为applicationyml() {
+        assertThat(ExternalConfigLocationResolver.CONFIG_FILE_NAME).isEqualTo("application.yml");
     }
 
     @Test
-    void 系统属性可覆盖外置配置目录() {
-        String custom = Paths.get("D:", "custom-config").toString();
-        System.setProperty(ExternalConfigLocationResolver.OVERRIDE_DIR_KEY, custom);
+    void 系统属性可覆盖外置配置文件完整路径() {
+        String custom = Paths.get("D:", "custom-config", "myapp.yml").toString();
+        System.setProperty(ExternalConfigLocationResolver.OVERRIDE_FILE_KEY, custom);
 
-        Path dir = ExternalConfigLocationResolver.resolveConfigDir();
+        Path file = ExternalConfigLocationResolver.resolveConfigFile();
 
-        assertThat(dir).isEqualTo(Paths.get(custom).toAbsolutePath().normalize());
-        assertThat(dir.getFileName().toString()).isEqualTo("custom-config");
+        assertThat(file).isEqualTo(Paths.get(custom).toAbsolutePath().normalize());
+        assertThat(file.getFileName().toString()).isEqualTo("myapp.yml");
     }
 
     @Test
-    void 目录location必须以斜杠结尾() {
-        Path dir = Paths.get("D:", "work", "demo");
+    void 系统属性可覆盖外置配置目录并自动拼接文件名() {
+        String dir = Paths.get("D:", "custom-config").toString();
+        System.setProperty(ExternalConfigLocationResolver.OVERRIDE_DIR_KEY, dir);
 
-        String location = ExternalConfigLocationResolver.toLocationString(dir);
+        Path file = ExternalConfigLocationResolver.resolveConfigFile();
+
+        assertThat(file.getFileName().toString()).isEqualTo("application.yml");
+        assertThat(file.getParent()).isEqualTo(Paths.get(dir).toAbsolutePath().normalize());
+    }
+
+    @Test
+    void 文件location不能以斜杠结尾() {
+        Path file = Paths.get("D:", "work", "demo", "application.yml");
+
+        String location = ExternalConfigLocationResolver.toLocationString(file);
 
         assertThat(location).startsWith("file:");
-        assertThat(location).endsWith("/");
-        assertThat(location).contains("demo");
+        assertThat(location).endsWith("application.yml");
+        assertThat(location).doesNotEndWith("/");
     }
 
     @Test
-    void 默认解析结果以application结尾() {
+    void 默认解析结果是绝对路径且以applicationyml结尾() {
+        System.clearProperty(ExternalConfigLocationResolver.OVERRIDE_FILE_KEY);
         System.clearProperty(ExternalConfigLocationResolver.OVERRIDE_DIR_KEY);
 
-        Path dir = ExternalConfigLocationResolver.resolveConfigDir();
+        Path file = ExternalConfigLocationResolver.resolveConfigFile();
 
-        assertThat(dir.getFileName().toString()).isEqualTo("application");
-        assertThat(dir.isAbsolute()).isTrue();
+        assertThat(file.getFileName().toString()).isEqualTo("application.yml");
+        assertThat(file.isAbsolute()).isTrue();
     }
 }
