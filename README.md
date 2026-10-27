@@ -310,7 +310,7 @@ app:
 
 ### 9.2 JitPack
 
-仓库推上 GitHub 并打 tag（如 `1.0.0`），到 https://jitpack.io 点一次 **Look up** 触发首次构建，之后：
+仓库推上 GitHub 并打 tag，到 https://jitpack.io 点一次 **Look up** 触发首次构建，之后：
 
 ```xml
 <repositories>
@@ -322,20 +322,27 @@ app:
 
 <dependency>
     <groupId>com.github.BoMuaMua</groupId>
-    <artifactId>Framework_hot_update</artifactId>
-    <version>1.0.0</version>
+    <artifactId>framework_hot_update</artifactId>
+    <version>1.0.2</version>
 </dependency>
 ```
 
-> **两个坑，实测踩过：**
+> **三个坑，实测踩过：**
 >
 > 1. **artifactId 是仓库名，不是模块名。** `jitpack.yml` 只 install 了 starter 一个模块，
 >    JitPack 采集到的是**聚合坐标** `com.github.用户名:仓库名`。写成
->    `com.github.BoMuaMua.Framework_hot_update:external-config-spring-boot-starter` 会 404。
+>    `com.github.BoMuaMua.framework_hot_update:external-config-spring-boot-starter` 会 404。
 >    下载下来的 jar 里就是 starter 的 class，功能完全一样。
-> 2. **路径区分大小写。** `https://jitpack.io/com/github/bomuamua/framework_hot_update/...` 是 404，
->    必须和 GitHub 上的用户名、仓库名逐字符一致。想用全小写，得先在 GitHub 上把仓库改名，
->    再重新打 tag 推送，让 JitPack 重新构建。
+> 2. **路径区分大小写。** 必须和 GitHub 上的用户名、仓库名逐字符一致。仓库已改名为全小写
+>    `framework_hot_update`，但**用户名 `BoMuaMua` 仍是大写开头**，groupId 必须写
+>    `com.github.BoMuaMua`，写成 `com.github.bomuamua` 会 404。
+> 3. **JitPack 的 `default` 构建镜像里 Maven 版本低于 3.6.3**，而 Spring Boot 3.3.5 用的
+>    `maven-compiler-plugin:3.13.0` 硬性要求 Maven ≥ 3.6.3，于是报
+>    `The plugin ... requires Maven version 3.6.3`。解决办法是仓库自带 Maven Wrapper：
+>    根目录提交了 `mvnw` / `mvnw.cmd` / `.mvn/wrapper/maven-wrapper.properties`（锁定 3.9.7），
+>    并把 `jitpack.yml` 的 install 命令改为 `./mvnw ...`，不再依赖镜像自带的 `mvn`。
+>    另外 `.gitattributes` 强制 `mvnw` 用 LF 行尾、保留可执行位（`git update-index --chmod=+x mvnw`），
+>    否则 Linux 上会 `bad interpreter`。
 
 引入即可，无需任何注解——自动装配会完成全部工作，也**不需要在 application.yml 里写任何配置**。
 若不想用，`app.hot-reload.enabled=false` 或排除自动配置。
