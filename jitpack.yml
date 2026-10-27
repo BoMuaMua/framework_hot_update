@@ -1,8 +1,16 @@
 # JitPack 构建配置
-# 默认使用 OpenJDK 8，Spring Boot 3.x 必须显式声明 17
+#
+# 1) 默认镜像是 OpenJDK 8，Spring Boot 3.x 必须显式声明 17
 jdk:
   - openjdk17
 
-# 只发布 starter，不发布 demo 应用（app 模块）
+# 2) JitPack 的 "default" 构建镜像里 Maven 版本低于 3.6.3，
+#    maven-compiler-plugin 3.13.0 会直接报
+#    "requires Maven version 3.6.3"，所以这里用仓库自带的 Maven Wrapper
+#    （.mvn/wrapper/maven-wrapper.properties 已锁定 3.9.7）来跑构建，
+#    不依赖 JitPack 镜像里的 mvn。
+#
+# 3) 只发布 starter，不发布 demo 应用（app 模块）。
+#    -am 会把根聚合 pom 一起 install 进 ~/.m2，避免消费端 Non-resolvable parent POM。
 install:
-  - mvn -B -DskipTests -pl external-config-spring-boot-starter -am install
+  - ./mvnw -B -DskipTests -pl external-config-spring-boot-starter -am install

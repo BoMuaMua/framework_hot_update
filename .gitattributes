@@ -1,0 +1,10 @@
+# 保证 shell 脚本在任何平台上都用 LF，否则 Linux 上会报 bad interpreter
+*.sh   text eol=lf
+mvnw   text eol=lf
+*.bat  text eol=crlf
+mvnw.cmd text eol=crlf
+
+# 二进制
+*.jar  binary
+*.png  binary
+*.jpg  binary
