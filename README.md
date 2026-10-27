@@ -310,7 +310,7 @@ app:
 
 ### 9.2 JitPack
 
-仓库推上 GitHub 并打 tag（如 `1.0.0`）后：
+仓库推上 GitHub 并打 tag（如 `1.0.0`），到 https://jitpack.io 点一次 **Look up** 触发首次构建，之后：
 
 ```xml
 <repositories>
@@ -321,14 +321,21 @@ app:
 </repositories>
 
 <dependency>
-    <groupId>com.github.bomuamua.framework_hot_update</groupId>
-    <artifactId>external-config-spring-boot-starter</artifactId>
+    <groupId>com.github.BoMuaMua</groupId>
+    <artifactId>Framework_hot_update</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
 
-> 坐标里的 `bomuamua` 和 `framework_hot_update` 对应 GitHub 上的**用户名**和**仓库名**（均小写）。
-> 改了仓库名，这个坐标也要跟着改。
+> **两个坑，实测踩过：**
+>
+> 1. **artifactId 是仓库名，不是模块名。** `jitpack.yml` 只 install 了 starter 一个模块，
+>    JitPack 采集到的是**聚合坐标** `com.github.用户名:仓库名`。写成
+>    `com.github.BoMuaMua.Framework_hot_update:external-config-spring-boot-starter` 会 404。
+>    下载下来的 jar 里就是 starter 的 class，功能完全一样。
+> 2. **路径区分大小写。** `https://jitpack.io/com/github/bomuamua/framework_hot_update/...` 是 404，
+>    必须和 GitHub 上的用户名、仓库名逐字符一致。想用全小写，得先在 GitHub 上把仓库改名，
+>    再重新打 tag 推送，让 JitPack 重新构建。
 
 引入即可，无需任何注解——自动装配会完成全部工作，也**不需要在 application.yml 里写任何配置**。
 若不想用，`app.hot-reload.enabled=false` 或排除自动配置。
