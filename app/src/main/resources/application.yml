@@ -1,0 +1,8 @@
+# jar 内兜底配置：外置 application/application.yml 缺失时使用
+server:
+  port: 8080
+
+demo:
+  app-name: jar内默认值
+  feature-enabled: false
+  timeout-ms: 3000

@@ -1,0 +1,24 @@
+# 外置配置：jar 同级 application/ 目录，修改后自动热更新
+server:
+  port: 8080
+
+jdk:
+  - openjdk17
+
+demo:
+  app-name: 外置配置-初始值
+  feature-enabled: false
+  timeout-ms: 3000
+
+app:
+  hot-reload:
+    enabled: true
+    debounce-ms: 300
+    sample-interval-ms: 150
+    max-retry: 10
+    refresh-value-fields: true
+    verbose-log: false
+
+logging:
+  level:
+    com.example.config: INFO
